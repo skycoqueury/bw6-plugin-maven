@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.Manifest;
 
+import com.tibco.bw.maven.plugin.utils.BWProjectUtils;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.apache.maven.artifact.resolver.filter.TypeArtifactFilter;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -27,9 +27,6 @@ import org.apache.maven.project.DependencyResolutionResult;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectDependenciesResolver;
 import org.apache.maven.shared.dependency.graph.DependencyGraphBuilder;
-import org.apache.maven.shared.dependency.graph.DependencyGraphBuilderException;
-import org.apache.maven.shared.dependency.graph.DependencyNode;
-import org.apache.maven.shared.dependency.graph.traversal.DependencyNodeVisitor;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.FileSet;
@@ -96,10 +93,10 @@ public class BWModuleTestPackageMojo extends AbstractMojo {
 
             manifest = ManifestParser.parseManifest(projectBasedir);
 
-            getLog().info("Updated the Manifest version ");
-            
-            ManifestWriter.updateManifestVersion(project, manifest, qualifierReplacement);
-            updateManifestVersion();
+			getLog().info("Updated the Manifest version ");
+			String qualifiedVersion = BWProjectUtils.computeQualifiedVersion(qualifierReplacement, project.getVersion());
+			getLog().info("The OSGi version is " + qualifiedVersion + " for Maven version of " + project.getVersion());
+			ManifestWriter.updateManifestVersion(manifest, qualifiedVersion);
             
             getLog().info("Removing the externals entries if any. ");
             removeExternals();
@@ -299,13 +296,6 @@ public class BWModuleTestPackageMojo extends AbstractMojo {
     
     protected boolean isSharedModule(){
     	return manifest.getMainAttributes().getValue(Constants.TIBCO_SHARED_MODULE) == null ? false : true;
-    }
-
-    private void updateManifestVersion() {
-    	String version = manifest.getMainAttributes().getValue(Constants.BUNDLE_VERSION);
-    	String qualifierVersion = VersionParser.getcalculatedOSGiVersion(version, qualifierReplacement);
-    	getLog().info("The OSGi verion is " + qualifierVersion + " for Maven version of " + version);
-    	manifest.getMainAttributes().putValue(Constants.BUNDLE_VERSION, qualifierVersion);
     }
 
     private void removeExternals() {

@@ -10,8 +10,6 @@ import java.util.jar.Manifest;
 
 import org.apache.maven.project.MavenProject;
 
-import com.tibco.bw.maven.plugin.utils.BWProjectUtils;
-import com.tibco.bw.maven.plugin.utils.BWProjectUtils.MODULE;
 import com.tibco.bw.maven.plugin.utils.Constants;
 
 public class ManifestWriter {
@@ -32,19 +30,12 @@ public class ManifestWriter {
     }
     
     
-    public static void updateManifestVersion(MavenProject project , Manifest mf, String qualifierReplacement)
+    public static void updateManifestVersion(Manifest mf, String qualifiedVersion)
     {
         Attributes attributes = mf.getMainAttributes();
-        
-        String projectVersion = project.getVersion();
-        if( projectVersion.indexOf("-SNAPSHOT") != -1 )
-        {
-        	projectVersion = projectVersion.replace("-SNAPSHOT", ".qualifier");
-        	projectVersion = getManifestVersion(mf, projectVersion, qualifierReplacement);
-        }
-        
-    	attributes.put(Name.MANIFEST_VERSION, projectVersion);
-        attributes.putValue(Constants.BUNDLE_VERSION, projectVersion );
+
+        attributes.put(Name.MANIFEST_VERSION, qualifiedVersion);
+        attributes.putValue(Constants.BUNDLE_VERSION, qualifiedVersion);
 
         //Updating provide capability for Shared Modules
 //        if(BWProjectUtils.getModuleType(mf) == MODULE.SHAREDMODULE){
@@ -52,11 +43,6 @@ public class ManifestWriter {
 //        	attributes.putValue(Constants.BUNDLE_PROVIDE_CAPABILITY, updatedProvide);
 //        }
 
-    }
-    
-    private static String getManifestVersion( Manifest manifest , String version, String qualifierReplacement) 
-    {    	
-    	return VersionParser.getcalculatedOSGiVersion(version, qualifierReplacement);
     }
 
 }

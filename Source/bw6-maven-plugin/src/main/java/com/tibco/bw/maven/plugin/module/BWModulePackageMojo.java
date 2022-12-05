@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.Manifest;
 
+import com.tibco.bw.maven.plugin.utils.BWProjectUtils;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
@@ -99,10 +100,11 @@ public class BWModulePackageMojo extends AbstractMojo {
             	throw new Exception("Failed to parse MANIFEST.MF for project -> "+ projectBasedir);
             }
             getLog().info("Updated the Manifest version ");
-            
-            ManifestWriter.updateManifestVersion(project, manifest, qualifierReplacement);
-            updateManifestVersion();
-            
+
+			String qualifiedVersion = BWProjectUtils.computeQualifiedVersion(qualifierReplacement, project.getVersion());
+			getLog().info("The OSGi version is " + qualifiedVersion + " for Maven version of " + project.getVersion());
+			ManifestWriter.updateManifestVersion(manifest, qualifiedVersion);
+
             getLog().info("Removing the externals entries if any. ");
             removeExternals();
 
@@ -330,12 +332,6 @@ public class BWModulePackageMojo extends AbstractMojo {
     	return manifest.getMainAttributes().getValue(Constants.TIBCO_SHARED_MODULE) == null ? false : true;
     }
 
-    private void updateManifestVersion() {
-    	String version = manifest.getMainAttributes().getValue(Constants.BUNDLE_VERSION);
-    	String qualifierVersion = VersionParser.getcalculatedOSGiVersion(version, qualifierReplacement);
-    	getLog().info("The OSGi verion is " + qualifierVersion + " for Maven version of " + version);
-    	manifest.getMainAttributes().putValue(Constants.BUNDLE_VERSION, qualifierVersion);
-    }
 
     private void removeExternals() {
     	String bundlePath = manifest.getMainAttributes().getValue(Constants.BUNDLE_CLASSPATH);

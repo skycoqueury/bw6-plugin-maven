@@ -2,7 +2,6 @@ package com.tibco.bw.maven.plugin.application;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +20,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
@@ -103,9 +101,13 @@ public class BWEARPackagerMojo extends AbstractMojo {
     	    archiveConfiguration = new MavenArchiveConfiguration();
     	    moduleVersionMap = new HashMap<String, String>();
             manifest = ManifestParser.parseManifest(projectBasedir);
-            ManifestWriter.updateManifestVersion(project, manifest, Constants.TIMESTAMP);
-            getLog().info("Updated the Manifest version ");
-            updateManifestVersion();
+
+			getLog().info("Updated the Manifest version ");
+			String qualifiedVersion = BWProjectUtils.computeQualifiedVersion(Constants.TIMESTAMP, project.getVersion());
+			getLog().info("The OSGi version is " + qualifiedVersion + " for Maven version of " + project.getVersion());
+			ManifestWriter.updateManifestVersion(manifest, qualifiedVersion);
+
+
     	    getLog().info("Adding Modules to the EAR file");
     		addModules();
     		getLog().info("Adding EAR Information to the EAR File");
@@ -578,13 +580,5 @@ public class BWEARPackagerMojo extends AbstractMojo {
 		}
 		getLog().debug("cleaned up the temporary files.");
     }
-    /**
-     *  Updated the Application manifest just like the module one
-     */
-    private void updateManifestVersion() {
-    	String version = manifest.getMainAttributes().getValue(Constants.BUNDLE_VERSION);
-    	String qualifierVersion = VersionParser.getcalculatedOSGiVersion(version, Constants.TIMESTAMP);
-    	getLog().info("The OSGi verion is " + qualifierVersion + " for Maven version of " + version);
-    	manifest.getMainAttributes().putValue(Constants.BUNDLE_VERSION, qualifierVersion);
-    }
+
 }
